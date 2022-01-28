@@ -1,8 +1,8 @@
-const Datastore = require('nedb-promises');
-const Ajv = require('ajv');
-const invoiceSchema = require('../schemas/invoice');
+const Datastore = require('nedb-promises')
+const Ajv = require('ajv')
+const invoiceSchema = require('../schemas/invoice')
 
-class invoiceStore {
+class InvoiceStore {
 
     constructor() {
         this.ajv = new Ajv({
@@ -33,8 +33,8 @@ class invoiceStore {
         return this.db.findOne({ invoice_id: invoice_id });
     }
 
-    deleteInvoice (invoiceId) {
-        return this.db.remove({ invoice_id: invoiceId }, {})
+    deleteInvoice (invoice_id) {
+        return this.db.remove({ invoice_id: invoice_id }, {})
     }
 
     editInvoice (payload) {
@@ -55,4 +55,4 @@ class invoiceStore {
     }
 }
 
-export default new invoiceStore()
+export default new InvoiceStore()

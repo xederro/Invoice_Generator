@@ -1,10 +1,11 @@
 'use strict'
 
-import { app, protocol, BrowserWindow } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
 import path from 'path'
 const isDevelopment = process.env.NODE_ENV !== 'production'
+let win
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -13,13 +14,19 @@ protocol.registerSchemesAsPrivileged([
 
 async function createWindow() {
   // Create the browser window.
-  const win = new BrowserWindow({
+  win = new BrowserWindow({
     width: 1920,
     height: 1080,
+    minWidth: 1000,
+    minHeight: 600,
     title: "Company",
+    frame: false,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: true,
     icon: path.join(__dirname, "public/favicon.ico"),
     webPreferences: {
-
+      preload: path.join(__dirname, 'preload.js'),
+      // devTools: false,
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
       nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
@@ -66,6 +73,18 @@ app.on('ready', async () => {
     }
   }
   createWindow()
+})
+
+ipcMain.on('close',()=>{
+  win.close();
+})
+
+ipcMain.on('min',()=>{
+  win.minimize()
+})
+
+ipcMain.on('toggleFull',()=>{
+  win.toggleFull()
 })
 
 // Exit cleanly on request from parent process in development mode.

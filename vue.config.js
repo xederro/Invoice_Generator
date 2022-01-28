@@ -1,8 +1,8 @@
 module.exports = {
     pluginOptions: {
         electronBuilder: {
-            externals: ['sqlite3'],
-            nodeIntegration: true
+            preload: 'src/preload.js',
+            nodeIntegration: false
         },
     }
 };

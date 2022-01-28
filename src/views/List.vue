@@ -4,7 +4,6 @@
       <tr>
         <th>ID</th>
         <th>Name</th>
-        <th>Address</th>
         <th>Invoice Date</th>
         <th>Pay Due Date</th>
         <th>E-mail</th>
@@ -16,7 +15,6 @@
            v-for="item in $data.list"
            :key="item.invoice_id"
            :id="item.invoice_id"
-           :address="item.address"
            :email="item.email"
            :invoice_date="new Date(item.invoice_date)"
            :pay_due="new Date(item.pay_due)"
@@ -26,7 +24,6 @@
       <tr>
         <th>ID</th>
         <th>Name</th>
-        <th>Address</th>
         <th>Invoice Date</th>
         <th>Pay Due Date</th>
         <th>E-mail</th>

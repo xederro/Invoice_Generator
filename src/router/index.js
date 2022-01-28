@@ -20,6 +20,11 @@ const routes = [
     path: '/add',
     name: 'Add',
     component: () => import('../views/Add.vue')
+  },
+  {
+    path: '/invoice/:id',
+    name: 'Invoice',
+    component: () => import('../views/Invoice.vue')
   }
 ]
 
