@@ -1,26 +1,29 @@
 <template>
-  <invoice-form @send="handleAdd"></invoice-form>
+  <div class="container-sm mx-sm-auto p-sm-0 my-5">
+    <invoice-form @send="handleAdd"></invoice-form>
+  </div>
 </template>
 
 <script>
-import db from '@/database/stores/invoice'
-import invoiceForm from '@/components/invoiceForm'
+import InvoiceForm from '@/components/InvoiceForm'
 
 export default {
   name: "Add",
   components:{
-    invoiceForm
+    InvoiceForm
   },
   methods: {
     handleAdd(emittedData) {
       let data = new Date();
       emittedData.invoice_id = `${data.getFullYear()}${data.getMonth()+1}${data.getDate()}${data.getHours()}${data.getMinutes()}${data.getSeconds()}${data.getMilliseconds()}`;
-      db.addInvoice(emittedData)
-          .then(() => {
-            this.$router.push('/list')
-            this.$emit('success')
-          })
-          .catch(() => this.$emit('error'))
+      window.api.send('addInvoice', JSON.stringify(emittedData));
+      window.api.receive('addInvoice', (r) => {
+          if (typeof r == "object"){
+            this.$router.push('/list');
+            window.api.send('toast', 'success');
+          }
+          else window.api.send('toast', 'error');
+      });
     },
   }
 }

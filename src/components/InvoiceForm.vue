@@ -1,40 +1,44 @@
 <template>
   <form @submit.prevent="emit" class="row g-3">
-    <div class="form-floating col-12">
-      <input v-model="invoice.name" type="text" class="form-control" id="name" required>
+    <div class="form-floating col-6">
+      <input v-model="invoice.name" type="text" class="form-control" maxlength="500" id="name" required>
       <label for="name" class="form-label">Name:</label>
     </div>
+    <div class="form-floating col-6">
+      <input v-model="invoice.email" type="email" class="form-control" maxlength="500" id="email" pattern="[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?" required>
+      <label for="email" class="form-label">Email address</label>
+    </div>
     <div class="form-floating col-9">
-      <input v-model="invoice.address.street" type="text" class="form-control" id="street" required>
+      <input v-model="invoice.address.street" type="text" class="form-control" maxlength="250" id="street" required>
       <label for="street" class="form-label">Street</label>
     </div>
     <div class="form-floating col-3">
-      <input v-model="invoice.address.number" type="text" class="form-control" id="number" required>
+      <input v-model="invoice.address.number" type="text" maxlength="15" class="form-control" id="number" required>
       <label for="street" class="form-label">Building Number</label>
     </div>
     <div class="form-floating col-6">
-      <input v-model="invoice.address.city" type="text" class="form-control" id="city" required>
+      <input v-model="invoice.address.city" type="text" maxlength="250" class="form-control" id="city" required>
       <label for="city" class="form-label">City, State</label>
     </div>
     <div class="form-floating col-6">
-      <input v-model="invoice.address.zip" type="text" class="form-control" id="zip" required>
+      <input v-model="invoice.address.zip" maxlength="15" pattern="(^\d{1,5}([ \-]\d{1,5})?$)|(^[ABCEGHJKLMNPRSTVXY]{1}\d{1}[A-Z]{1}[ \-]\d{1}[A-Z]{1}\d{1}$)" type="text" class="form-control" id="zip" required>
       <label for="zip" class="form-label">ZIP code</label>
     </div>
-    <div class="form-floating col-12">
-      <input v-model="invoice.email" type="email" class="form-control" id="email" placeholder="name@example.com" required>
-      <label for="email" class="form-label">Email address</label>
-    </div>
     <div class="form-floating col-md-6">
-      <input v-model="invoice.invoice_date" type="date" class="form-control" id="invoice_date" required>
+      <input v-model="invoice.invoice_date" type="date" class="form-control" id="invoice_date" min="2000-01-01" max="2099-12-31" required>
       <label for="invoice_date" class="form-label">Invoice date:</label>
     </div>
     <div class="form-floating col-md-6">
-      <input v-model="invoice.pay_due" type="date" class="form-control" id="pay_due" required>
+      <input v-model="invoice.pay_due" type="date" class="form-control" id="pay_due" min="2000-01-01" max="2099-12-31" required>
       <label for="pay_due" class="form-label">Pay due date:</label>
     </div>
-    <div class="form-floating col-12">
-      <textarea v-model="invoice.description" class="form-control" id="description" rows="3"></textarea>
+    <div class="form-floating col-11">
+      <textarea v-model="invoice.description" maxlength="3000" class="form-control" id="description" rows="3"></textarea>
       <label for="description" class="form-label">Description:</label>
+    </div>
+    <div class="form-floating col-1">
+      <input v-model="invoice.discount" class="form-control" id="cost_per_quantity" type="number" min="0" step=".01" required @change="handleEdit">
+      <label for="cost_per_quantity" class="form-label">Discount [{{currency}}]:</label>
     </div>
     <div class="col-12">
       <div class="card">
@@ -44,7 +48,7 @@
         </div>
           <div class="card-body">
             <ul class="list-group list-group-flush">
-              <invoice-form-item v-for="item in invoice.items" @delete="removeItem" :key="item.id" :data="item" @edit="editItem"></invoice-form-item>
+              <invoice-form-item v-for="item in invoice.items" :currency="currency" @delete="removeItem" :key="item.id" :data="item" @edit="editItem"></invoice-form-item>
             </ul>
           </div>
         </div>
@@ -56,11 +60,11 @@
 </template>
 
 <script>
-import invoiceFormItem from "@/components/invoiceFormItem";
+import InvoiceFormItem from "@/components/InvoiceFormItem";
 export default {
-  name: "invoiceForm",
+  name: "InvoiceForm",
   components:{
-    invoiceFormItem
+    InvoiceFormItem
   },
   props: {
     data: Object
@@ -81,7 +85,9 @@ export default {
       description: '',
       email: '',
       items: [],
-    }
+      discount: 0,
+    },
+    currency: 'EUR',
   }),
   emits: ['send'],
   methods: {
@@ -110,6 +116,9 @@ export default {
       this.$data.id = this.data.items[this.data.items.length-1].id+1;
     }
     else this.addItem()
+
+    window.api.send('getCredentials')
+    window.api.receive('getCredentials', (r) => this.$data.currency = r.currency)
   }
 }
 </script>

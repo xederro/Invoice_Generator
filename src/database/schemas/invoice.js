@@ -42,6 +42,9 @@ const invoiceSchema = {
             type: 'array',
             additionalItems: {type: "object"}
         },
+        discount: {
+            type: 'number'
+        }
     },
 };
 

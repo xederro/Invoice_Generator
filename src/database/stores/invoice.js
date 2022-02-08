@@ -3,8 +3,9 @@ const Ajv = require('ajv')
 const invoiceSchema = require('../schemas/invoice')
 
 class InvoiceStore {
-
     constructor() {
+        this.perPage = 25;
+
         this.ajv = new Ajv({
             allErrors: true,
             useDefaults: true
@@ -12,7 +13,12 @@ class InvoiceStore {
 
         this.schemaValidator = this.ajv.compile(invoiceSchema);
 
-        this.db = Datastore.create('/invoice.db');
+        try {
+            this.db = Datastore.create('./invoice.db');
+        }
+        catch (e) {
+            this.db = Datastore.create('./invoice.db');
+        }
     }
 
     validate (payload){
@@ -25,8 +31,20 @@ class InvoiceStore {
         }
     }
 
+    paginate (page = 1) {
+        return this.db.find()
+            .sort({ pay_due: -1 })
+            .limit(this.perPage)
+            .skip(page * this.perPage)
+    }
+
+    pageCount () {
+        return this.db.count()
+    }
+
     fetchAllInvoices () {
         return this.db.find()
+            .sort({ pay_due: -1 })
     }
 
     fetchInvoice (invoice_id) {
@@ -49,6 +67,7 @@ class InvoiceStore {
                     description: payload.description,
                     email: payload.email,
                     items: payload.items,
+                    discount: payload.discount,
                 },
             })
         }

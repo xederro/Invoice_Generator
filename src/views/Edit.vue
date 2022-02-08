@@ -1,32 +1,33 @@
 <template>
-  <invoice-form v-if="this.$data.invoice" @send="handleEdit" :data="this.$data.invoice"></invoice-form>
+  <div class="container-sm mx-sm-auto p-sm-0 my-5">
+    <invoice-form v-if="this.$data.invoice" @send="handleEdit" :data="this.$data.invoice"></invoice-form>
+  </div>
 </template>
 
 <script>
-import db from '@/database/stores/invoice'
-import invoiceForm from '@/components/invoiceForm'
+import InvoiceForm from '@/components/InvoiceForm'
 
 export default {
   name: "Edit",
   components:{
-    invoiceForm
+    InvoiceForm
   },
   data: () => ({}),
   methods: {
     handleEdit(emittedData) {
-      db.editInvoice(emittedData)
-          .then(() => {
-            this.$router.push('/list')
-            this.$emit('success')
-          })
-          .catch(() => this.$emit('error'))
-
+      window.api.send('editInvoice', JSON.stringify(emittedData))
+      window.api.receive('editInvoice', () => {
+        this.$router.push('/list');
+        window.api.send('toast', 'success');
+      })
     },
   },
   mounted() {
-    db.fetchInvoice(this.$route.params.id).then(r => {
+    window.api.send('fetchInvoice', JSON.stringify(this.$route.params.id))
+    window.api.receive('fetchInvoice', (r) => {
       this.$data.invoice = r
     })
+
   }
 }
 </script>

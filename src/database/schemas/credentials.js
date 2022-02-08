@@ -26,6 +26,15 @@ const invoiceSchema = {
         },
         phone: {
             type: 'string'
+        },
+        currency: {
+            type: 'string'
+        },
+        tax: {
+            type: 'number'
+        },
+        img: {
+            type: 'string'
         }
     },
 };
