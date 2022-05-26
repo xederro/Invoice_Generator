@@ -1,10 +1,10 @@
 <template>
   <div class="container-sm mx-sm-auto p-sm-0 my-5">
     <div class="p-3 m-0 bg-light rounded-3">
-      <h1 class="display-10 fw-bold">Income</h1>
-      <canvas id="myChart" class="m-0 p-0 w-100" ref="chart1"></canvas>
+      <h1 class="display-10 fw-bold">Balance</h1>
+      <canvas id="chart1" class="m-0 p-0 w-100" ref="chart1"></canvas>
     </div>
-    <div class="p-3 mt-3 bg-light rounded-3">
+    <div class="p-3 mt-3 bg-light rounded-3" v-if="upcoming">
       <h1 class="display-10 fw-bold">Upcoming</h1>
 
       <div class="row row-cols-3 text-center">
@@ -12,7 +12,7 @@
           <div class="card mb-4 rounded-3 shadow-sm">
             <div class="card-header py-3">
               <h4 class="my-0 fw-normal">
-                {{ invoice.pay_due.toString() }}
+                To: {{ invoice.pay_due }}
               </h4>
             </div>
             <div class="card-body">
@@ -31,11 +31,14 @@
 
 <script>
 import Chart from 'chart.js/auto'
+import annotationPlugin from 'chartjs-plugin-annotation';
 
 export default {
   name: 'Home',
   data: () => ({
-    income: {},
+    paid: {},
+    notPaid: {},
+    late: {},
     upcoming: [],
     currency: String,
   }),
@@ -50,14 +53,50 @@ export default {
     }
   },
   mounted() {
+
+    function sortObject(object){
+      return Object.keys(object).sort().reduce(
+          (obj, key) => {
+            obj[key] = object[key];
+            return obj;
+          },
+          {}
+      );
+    }
+
+    function completeValues(object, labels){
+      let ordered = sortObject(object);
+      let allValues = [];
+
+      labels.forEach(label=>{
+        allValues.push(ordered[label]??0)
+      })
+
+      return allValues;
+    }
+
+    Chart.register(annotationPlugin);
     const incomeChart = new Chart(this.$refs.chart1.getContext('2d'), {
       type: 'bar',
       data: {
         labels: [],
-        datasets: [{
-          data: [],
-          backgroundColor: 'rgba(13, 110, 253,.5)'
-        }]
+        datasets: [
+          {
+            label: 'Paid',
+            data: [],
+            backgroundColor: "#198754",
+          },
+          {
+            label: 'in time',
+            data: [],
+            backgroundColor: "#ffc107",
+          },
+          {
+            label: 'not in time',
+            data: [],
+            backgroundColor: "#dc3545",
+          },
+        ]
       },
       options: {
         responsive: true,
@@ -66,13 +105,33 @@ export default {
           axis: 'x'
         },
         scales: {
+          x: {
+            stacked: true,
+          },
           y: {
-            beginAtZero: false
+            stacked: true,
+            beginAtZero: true
           }
         },
         plugins: {
           legend: {
             display: false
+          },
+          annotation: {
+            annotations: {
+              line: {
+                type: 'line',
+                label: {
+                  content: "Max Monthly",
+                  enabled: true
+                },
+                value: 1505,
+                endValue: 1505,
+                scaleID: 'y',
+                borderColor: 'rgb(255, 99, 132)',
+                borderWidth: 2
+              }
+            }
           }
         }
       }
@@ -85,22 +144,52 @@ export default {
 
     window.api.send('fetchAllInvoices')
     window.api.receive('fetchAllInvoices',(r) => {
-      for (let inv in r){
-        const today = new Date();
-        if (r[inv].pay_due <= today){
-          if (this.$data.income[r[inv].pay_due.toLocaleString().substring(7,0)]){
-            this.$data.income[r[inv].pay_due.toLocaleString().substring(7,0)] += this.sum(r[inv].items);
+      let labels = [];
+
+      r.forEach(inv=>{
+        if(!labels.includes(inv.invoice_date.substring(7,0))){
+          labels.push(inv.invoice_date.substring(7,0))
+        }
+
+        if (inv.payed){
+          if (this.$data.paid[inv.invoice_date.substring(7,0)]){
+            this.$data.paid[inv.invoice_date.substring(7,0)] += Number(inv.items.reduce((a,b)=>a+(b.quantity*b.cost_per_quantity), 0)) - inv.discount;
           }
           else {
-            this.$data.income[r[inv].pay_due.toLocaleString().substring(7,0)] = this.sum(r[inv].items);
+            this.$data.paid[inv.invoice_date.substring(7,0)] = Number(inv.items.reduce((a,b)=>a+(b.quantity*b.cost_per_quantity), 0)) - inv.discount;
           }
         }
-        else if(new Date(r[inv].pay_due) >= new Date(today+588000000)){
-          this.$data.upcoming.unshift(r[inv]);
+        else {
+          const today = new Date();
+          if (new Date(inv.pay_due) <= today){
+            if (this.$data.late[inv.invoice_date.substring(7,0)]){
+              this.$data.late[inv.invoice_date.substring(7,0)] += Number(inv.items.reduce((a,b)=>a+(b.quantity*b.cost_per_quantity), 0)) - inv.discount;
+            }
+            else {
+              this.$data.late[inv.invoice_date.substring(7,0)] = Number(inv.items.reduce((a,b)=>a+(b.quantity*b.cost_per_quantity), 0)) - inv.discount;
+            }
+          }
+          else {
+            if (this.$data.notPaid[inv.invoice_date.substring(7,0)]){
+              this.$data.notPaid[inv.invoice_date.substring(7,0)] += Number(inv.items.reduce((a,b)=>a+(b.quantity*b.cost_per_quantity), 0)) - inv.discount;
+            }
+            else {
+              this.$data.notPaid[inv.invoice_date.substring(7,0)] = Number(inv.items.reduce((a,b)=>a+(b.quantity*b.cost_per_quantity), 0)) - inv.discount;
+            }
+          }
+
+          if(new Date(inv.pay_due) <= new Date(today+588000000)){
+            this.$data.upcoming.unshift(inv);
+          }
         }
-      }
-      incomeChart.data.labels = Object.keys(this.$data.income);
-      incomeChart.data.datasets[0].data = Object.values(this.$data.income);
+      })
+
+      console.log(this.$data.paid)
+
+      incomeChart.data.labels = labels.sort();
+      incomeChart.data.datasets[0].data = completeValues(this.$data.paid, labels);
+      incomeChart.data.datasets[1].data = completeValues(this.$data.notPaid, labels);
+      incomeChart.data.datasets[2].data = completeValues(this.$data.late, labels);
       incomeChart.update();
     })
 

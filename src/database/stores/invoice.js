@@ -61,6 +61,7 @@ class InvoiceStore {
                 $set: {
                     invoice_id: payload.invoice_id,
                     name: payload.name,
+                    payed: payload.payed,
                     address: payload.address,
                     invoice_date: payload.invoice_date,
                     pay_due: payload.pay_due,
@@ -71,6 +72,15 @@ class InvoiceStore {
                 },
             })
         }
+    }
+
+    paycheckInvoice (payload){
+        console.log(payload.payed)
+        return this.db.update({ invoice_id: payload.invoice_id }, {
+            $set: {
+                payed: payload.payed
+            },
+        })
     }
 }
 

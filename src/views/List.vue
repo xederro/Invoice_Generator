@@ -6,6 +6,7 @@
           <thead>
           <tr>
             <th>ID</th>
+            <th>Payed</th>
             <th>Name</th>
             <th>Invoice Date</th>
             <th>Pay Due Date</th>
@@ -21,7 +22,8 @@
                :email="item.email"
                :invoice_date="new Date(item.invoice_date)"
                :pay_due="new Date(item.pay_due)"
-               :name="item.name" />
+               :name="item.name"
+               :payed="item.payed"/>
           </tbody>
         </table>
       </div>

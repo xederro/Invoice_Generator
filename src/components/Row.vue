@@ -1,6 +1,7 @@
 <template>
   <tr>
     <td style="width: 200px" class="text-break text-wrap">{{ id }}</td>
+    <td style="width: 40px" class="text-break text-wrap"><input type="checkbox" class="form-check-input" v-model="payCheck" @change="handlePayed"></td>
     <td class="text-break text-wrap">{{ name }}</td>
     <td style="width: 120px" class="text-break text-wrap">{{ invoice_date.toISOString().split('T')[0] }}</td>
     <td style="width: 120px" class="text-break text-wrap">{{ pay_due.toISOString().split('T')[0] }}</td>
@@ -22,12 +23,21 @@
 export default {
   name: "Row",
   emits: ['delete'],
+  data() {
+    return{
+      payCheck:false
+    }
+  },
   props: {
     id: String,
     name: String,
     invoice_date: Date,
     pay_due: Date,
-    email: String
+    email: String,
+    payed: Boolean
+  },
+  mounted() {
+    this.$data.payCheck = this.$props.payed
   },
   methods: {
     handleDelete() {
@@ -37,10 +47,19 @@ export default {
         window.api.send('toast', 'success');
       })
     },
+    handlePayed() {
+      window.api.send('paycheckInvoice', JSON.stringify({invoice_id: this.$props.id, payed: this.$data.payCheck}))
+      window.api.receive('paycheckInvoice',() => {
+        window.api.send('toast', 'success');
+      })
+    },
   }
 }
 </script>
 
 <style scoped>
-
+  input[type="checkbox"]{
+    width: 40px;
+    height: 40px;
+  }
 </style>

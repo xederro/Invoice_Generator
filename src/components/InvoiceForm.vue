@@ -74,6 +74,7 @@ export default {
     invoice: {
       invoice_id: '',
       name: '',
+      payed: false,
       address: {
         street: '',
         city: '',

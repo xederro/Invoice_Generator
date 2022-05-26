@@ -7,6 +7,9 @@ const invoiceSchema = {
         name: {
             type: 'string'
         },
+        payed: {
+            type: 'boolean'
+        },
         address: {
             type: 'object',
             properties: {

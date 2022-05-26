@@ -130,12 +130,19 @@ ipcMain.on('editInvoice',(event, data) => {
       .then(r => returnChannel('editInvoice', r));
 })
 
+ipcMain.on('paycheckInvoice',(event, data) => {
+  returnChannel('progress', true);
+  console.log(JSON.parse(data))
+  invoice.paycheckInvoice(JSON.parse(data))
+      .then(r => returnChannel('paycheckInvoice', r));
+})
+
 ipcMain.on('paginate',(event, data) => {
   invoice.paginate(JSON.parse(data))
       .then(r => returnChannel('paginate', r));
 })
 
-ipcMain.on('pageCount',(event) => {
+ipcMain.on('pageCount',() => {
   invoice.pageCount()
       .then(r => returnChannel('pageCount', Math.ceil(r / invoice.perPage)));
 })
